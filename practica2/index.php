@@ -20,11 +20,6 @@ abstract class Unit {
         return $this->hp;
     }
 
-    public function setHp($points){
-        $this->hp = $points;
-
-        show("{$this->name} ahora tiene {$this->hp} puntos de vida");
-    }
 
     public function move($direction){
         show("{$this->name} camina hacia $direction");
@@ -32,15 +27,45 @@ abstract class Unit {
 
     abstract public function attack(Unit $opponent);
 
+    public function takeDamage($damage){
+
+        $this->setHp($this->hp - $damage);
+
+        if ($this->hp <= 0){
+            $this->die();
+        }
+
+    }
+
     public function die(){
         show("{$this->name} ha muerto");
     }
+
+
+    public function setHp($points){
+        $this->hp = $points;
+
+        show("{$this->name} ahora tiene {$this->hp} puntos de vida");
+    }
+
 }
 
 class Soldier extends Unit {
+
+    protected $damage = 40;
+    protected $damageReduction = 4;
+
+
     public function attack(Unit $opponent){
         show("{$this->name} corta a {$opponent->getName()} en dos");
-        $opponent->die();
+
+        $opponent->takeDamage($this->damage);
+    }
+
+    public function takeDamage($damage){
+        $damage /= $this->damageReduction;
+
+        return parent::takeDamage($damage);
     }
 }
 
@@ -52,13 +77,14 @@ class Archer extends Unit {
     public function attack(Unit $opponent){
         show("{$this->name} dispara una flecha a {$opponent->getName()}");
 
-        $opponent->setHp($opponent->getHp() - $this->damage);
+        $opponent->takeDamage($this->damage);
 
-        if ($opponent->getHp() <= 0){
-            $opponent->die();
+    }
+
+    public function takeDamage($damage){
+        if(rand(0, 1)){
+            return parent::takeDamage($damage);
         }
-
-        
     }
 }
 
@@ -68,5 +94,7 @@ $carlugo = new Archer('Carlugo');
 $carlugo->attack($joako);
 
 $carlugo->attack($joako);
+
+$joako->attack($carlugo);
 
 ?>
